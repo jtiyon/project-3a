@@ -24,15 +24,26 @@ def get_token_counts(corpus, tags_to_exclude = ['PUNCT', 'SPACE']):
     # make an empty dictionary called token_counts
     token_counts = {}
     # for each key (named doc_id) in the corpus dictionary
-
+    for doc_id in corpus.keys():
         # if there's a 'doc' key in that entry in the corpus dictionary
-
+        if 'doc' in corpus[doc_id]:
             # for each token in that document
+            for token in corpus[doc_id]['doc']:
+                
+                #if maintags wanted
+                if 'leaveMainTags' in tags_to_exclude:
+                    #check if tag is one of specified
+                    if token.pos_ not in ['NOUN', 'VERB','ADJ', 'ADV','PROPN']:
+                        #add to tags to exclude
+                        tags_to_exclude.append(token.pos_)
 
                 # if the token's coarse-grained part of speech is not in tags_to_exclude
-
+                if token.pos_ not in tags_to_exclude:
                     # increment the value in token_counts for the key token.text; don't forget to check if token.text is in token_counts first! (3 lines of code)
- 
+                    if token.text not in token_counts:
+                        token_counts[token.text] = 1
+                    else:
+                        token_counts[token.text] += 1
     # return the token counts as a list of pairs
     return list(token_counts.items())
 
@@ -49,15 +60,26 @@ def get_entity_counts(corpus, min_freq = 50, tags_to_exclude = ['QUANTITY']):
     # make an empty dictionary called entity_counts
     entity_counts = {}
     # for each key (named doc_id) in the corpus dictionary
-
+    for doc_id in corpus.keys():
         # if there's a 'doc' key in that entry in the corpus dictionary
-
+         if 'doc' in corpus[doc_id]:
             # for each entity in that document
-
+            for ent in corpus[doc_id]['doc'].ents:
+                
+                #check if maintags wanted
+                if 'leaveMainTags' in tags_to_exclude:
+                    #check if the entity's label is  one of the specified
+                    if ent.label_ not in ['ORG', 'LOC', 'PERSON','GPE']:
+                        #if so add the label in tags_to_exclude
+                        tags_to_exclude.append(ent.label_)
+                    
                 # if the entity's label is not in tags_to_exclude
-
+                if ent.label_ not in tags_to_exclude:
                     # increment the value in entity_counts for the key entity.text (3 lines of code)
-
+                    if ent.text not in entity_counts:
+                        entity_counts[ent.text] = 1
+                    else:
+                        entity_counts[ent.text]+=1
     # return the entity counts as a list of pairs
     return list(entity_counts.items())
 
@@ -71,10 +93,12 @@ def reduce_to_top_k(frequencies, top_k=25):
     :returns: a list of the top k most frequent items
     :rtype: list
     """
-    # sort the frequency table by frequency (least to most frequent) 
+    # sort the frequency table by frequency (least to most frequent)
     frequencies = sorted(frequencies, key=lambda x: x[1])
     # return the top k of them
-    return 
+    end_index = (len(frequencies))
+    start_index = end_index - top_k
+    return frequencies[start_index : end_index]
 
 def load_textfile(file_name, corpus, nlp):
     """Loads a textfile into a corpus. Doesn't need to return corpus since a corpus once made can be modified as it moves around.
@@ -86,11 +110,10 @@ def load_textfile(file_name, corpus, nlp):
     :param nlp: a spaCy engine
     :type nlp: spaCy engine
      """
-    pass # take this line out when you have filled in the code below
     # open file_name as f
-    
+    with open(file_name, 'r') as f:
         # make a dictionary containing the key 'doc' mapped to the spacy document for the text in file_name; then in the 'corpus' dictionary add the key file_name and map it to this dictionary
-        # uncomment this line and indent appropriately: corpus[file_name] = {'doc': nlp(' '.join(f.readlines()))}
+        corpus[file_name] = {'doc': nlp(' '.join(f.readlines()))}
 
 def load_compressed(file_name, corpus, nlp):
     """Loads a zipfile into a corpus. Doesn't need to return corpus since a corpus once made can be modified as it moves around.
@@ -106,9 +129,8 @@ def load_compressed(file_name, corpus, nlp):
     shutil.unpack_archive(file_name, 'temp')
     # for each file_name in the compressed file
     for file_name2 in glob.glob('temp/*'):
-        pass # take this line out when you have filled in the code below
-        # build the corpus using the contents of file_name2 
-
+        #build the corpus using the contents of file_name2
+        load_textfile(file_name2, corpus, nlp)
     # clean up by removing the extracted files
     shutil.rmtree("temp")
 
@@ -126,11 +148,11 @@ def load_jsonl(file_name, corpus, nlp):
     with open(file_name, encoding='utf-8') as f:
         # walk over all the lines in the file
         for line in f.readlines():
-                # load the python dictionary from the line using the json package; assign the result to the variabe 'js'
-                pass #take this line out when you have filled in the code below
-                # if there are keys 'id' and 'fullText' in 'js'
-
-                    # uncomment this line and indent appropriately: corpus[js["id"]] = {'metadata': js, 'doc': nlp(' '.join(js["fullText"]))}
+            # load the python dictionary from the line using the json package; assign the result to the variabe 'js'
+            js = json.loads(line)
+            # if there are keys 'id' and 'fullText' in 'js'
+            if 'id' in js.keys() and 'fullText' in js.keys():
+                corpus[js["id"]] = {'metadata': js, 'doc': nlp(' '.join(js["fullText"]))}
             
 def build_corpus(pattern, corpus={}, nlp=spacy.load("en_core_web_sm")):
     """Builds a corpus from a pattern that matches one or more compressed or text files.
@@ -147,17 +169,19 @@ def build_corpus(pattern, corpus={}, nlp=spacy.load("en_core_web_sm")):
     try:
         pass # take this line out when you have filled in the code below
         # for each file_name matching pattern
-
+        for file_name in glob.glob(pattern):
             # if file_name ends with '.zip', '.tar' or '.tgz'
-
+            if file_name.endswith(('.zip', '.tar', '.tgz')):
                 # then call load_compressed
-
+                 load_compressed(file_name, corpus, nlp)
             # if file_name ends with '.jsonl'
-
+            if file_name.endswith('.jsonl'):
                 # then call load_jsonl
-
+                load_jsonl(file_name, corpus, nlp)
             # otherwise (we assume the files are just text)
+            else:
                 # then call load_textfile
+                load_textfile(file_name, corpus, nlp)
 
     except Exception as e: # if it doesn't work, say why
         print(f"Couldn't load % s due to error %s" % (pattern, str(e)))

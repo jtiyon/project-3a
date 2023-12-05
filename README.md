@@ -3,9 +3,9 @@
 # Project 3a
 
 ## Name
-
+Joshua Iyonsi
 ## Class year
-
+2026
 ## Extension(s) - Describe your extension(s) here
 
 ## Resources - Who or what did you use to finish this project deliverable?
