@@ -129,8 +129,13 @@ def load_compressed(file_name, corpus, nlp):
     shutil.unpack_archive(file_name, 'temp')
     # for each file_name in the compressed file
     for file_name2 in glob.glob('temp/*'):
-        #build the corpus using the contents of file_name2
-        load_textfile(file_name2, corpus, nlp)
+        ##account for jsonl file in zip
+        if file_name2.endswith('.jsonl'):
+            ## then call load_jsonl
+                load_jsonl(file_name2, corpus, nlp)
+        else:
+            #build the corpus using the contents of file_name2
+            load_textfile(file_name2, corpus, nlp)
     # clean up by removing the extracted files
     shutil.rmtree("temp")
 
@@ -167,7 +172,10 @@ def build_corpus(pattern, corpus={}, nlp=spacy.load("en_core_web_sm")):
     :rtype: dict
      """
     try:
-        pass # take this line out when you have filled in the code below
+
+        ## Set the max_length attribute for the spaCy engine
+        nlp.max_length = 1500000
+
         # for each file_name matching pattern
         for file_name in glob.glob(pattern):
             # if file_name ends with '.zip', '.tar' or '.tgz'
@@ -185,6 +193,11 @@ def build_corpus(pattern, corpus={}, nlp=spacy.load("en_core_web_sm")):
 
     except Exception as e: # if it doesn't work, say why
         print(f"Couldn't load % s due to error %s" % (pattern, str(e)))
+
+    finally:
+        ## Reset max_length to its default value to avoid affecting other parts of your code
+        nlp.max_length = 1000000
+
     # return the corpus
     return corpus
 
