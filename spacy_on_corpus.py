@@ -212,14 +212,18 @@ def get_metadata_counts(corpus, metadata_key):
     :rtype: dict
     """
     # make an empty dictionary called metadata_counts
-
+    metadata_counts = {}
     # for each key (named doc_id) in the corpus dictionary
-
+    for doc_id in corpus.keys():
         # if there's a metadata_key key in the metadata for that entry in the corpus dictionary
-
+        if metadata_key in corpus[doc_id]['metadata'].keys():
             # add or increment the value of that dictionary in metadata_counts (3 lines of code!)
-
-  # return the metadata counts as a list of pairs
+            if corpus[doc_id]['metadata'][metadata_key] not in metadata_counts:
+                metadata_counts[corpus[doc_id]['metadata'][metadata_key]] = 1
+            else:
+                metadata_counts[corpus[doc_id]['metadata'][metadata_key]] += 1
+    # return the metadata counts as a list of pairs
+    return list(metadata_counts.items())
 
 
 def get_basic_statistics(corpus):
