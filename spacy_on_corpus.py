@@ -233,50 +233,61 @@ def get_basic_statistics(corpus):
     :type corpus: dict
     """
     # print the number of documents in the corpus
- 
+    print(f'Document: {len(corpus)}\n')
     # get the token frequency table (instead of None)
-    token_counts = None
-
+    token_counts = get_token_counts(corpus)
     # print the number of tokens in the corpus
     print(f'Tokens: %i\n' % sum([x[1] for x in token_counts]))
     # print the number of unique tokens in the corpus
-
+    print(f'Unique tokens: %i\n' % len(token_counts))
     # get the entity frequency table (instead of None)
-    entity_counts = None
+    entity_counts = get_entity_counts(corpus)
     # print the number of entities in the corpus
-
+    print(f'Entities: %i\n' % sum([x[1] for x in entity_counts]))
     # print the number of unique entities in the corpus
-
+    print(f'Unique entities: %i\n' % len(entity_counts))
     # get the publication year table
-
+    publication_years = get_metadata_counts(corpus, 'publicationYear')
+    ##sort pub years from smallest-largest
+    sorted_pub_years = sorted(publication_years, key=lambda x:x[0])
     # print the publication year range of the corpus
-
+    print(f'Publication year range: {sorted_pub_years[0][0]}-{sorted_pub_years[(len(sorted_pub_years)-1)][0]}\n')
     # get the page count table
-
+    pgCounts = get_metadata_counts(corpus, 'pageCount')
+    ## sort pgcount table
+    sorted_pgCounts = sorted(pgCounts, key=lambda x:x[0])
     # print the page count range of the corpus
+    print(f'Page count range: {sorted_pgCounts[0][0]}-{sorted_pgCounts[(len(sorted_pgCounts)-1)][0]}\n')
 
 
-def plot_word_entity_frequencies(corpus):
+def plot_word_entity_frequencies(corpus, k=25):
     """Makes bar charts for the top k most frequent tokens and entities in the corpus.
 
     :param corpus: a dictionary mapping document identifiers to document metadata and document NLP output
     :type corpus: dict
     """
     # get the token frequency table (instead of None)
-    token_counts = None
+    token_counts = get_token_counts(corpus, tags_to_exclude= ['leaveMainTags'])
     # get the top k most frequent tokens (instead of None)
-    reduced_token_counts = None
+    reduced_token_counts = reduce_to_top_k(token_counts, k)
     # make a bar chart for them
     plt.barh([x[0] for x in reduced_token_counts], [x[1] for x in reduced_token_counts])
+    #plt.xlabel('Frequency')
+    #plt.ylabel('Tokens')
+    #plt.title(f'Top {k} Most Frequent Tokens')
     plt.tight_layout()
     plt.savefig("token_counts.png")
     plt.clf()
+
     # get the entity frequency table (instead of None)
-    entity_counts = None
+    entity_counts = get_entity_counts(corpus, tags_to_exclude=['leaveMainTags'])
     # get the top k most frequent entities (instead of None)
-    reduced_entity_counts = None
+    reduced_entity_counts = reduce_to_top_k(entity_counts, k)
     # make a bar chart for them
     plt.barh([x[0] for x in reduced_entity_counts], [x[1] for x in reduced_entity_counts])
+    #plt.xlabel('Frequency')
+    #plt.ylabel('Entities')
+    #plt.title(f'Top {k} Most Frequent Entities')
     plt.tight_layout()
     plt.savefig("entity_counts.png")
     plt.clf()   
