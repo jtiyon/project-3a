@@ -251,13 +251,13 @@ def get_basic_statistics(corpus):
     ##sort pub years from smallest-largest
     sorted_pub_years = sorted(publication_years, key=lambda x:x[0])
     # print the publication year range of the corpus
-    print(f'Publication year range: {sorted_pub_years[0][0]}-{sorted_pub_years[(len(sorted_pub_years)-1)][0]}\n')
+    ##print(f'Publication year range: {sorted_pub_years[0][0]}-{sorted_pub_years[-1][0]}\n')
     # get the page count table
     pgCounts = get_metadata_counts(corpus, 'pageCount')
     ## sort pgcount table
     sorted_pgCounts = sorted(pgCounts, key=lambda x:x[0])
     # print the page count range of the corpus
-    print(f'Page count range: {sorted_pgCounts[0][0]}-{sorted_pgCounts[(len(sorted_pgCounts)-1)][0]}\n')
+    ##print(f'Page count range: {sorted_pgCounts[0][0]}-{sorted_pgCounts[-1][0]}\n')
 
 
 def plot_word_entity_frequencies(corpus, k=25):
@@ -272,9 +272,9 @@ def plot_word_entity_frequencies(corpus, k=25):
     reduced_token_counts = reduce_to_top_k(token_counts, k)
     # make a bar chart for them
     plt.barh([x[0] for x in reduced_token_counts], [x[1] for x in reduced_token_counts])
-    #plt.xlabel('Frequency')
-    #plt.ylabel('Tokens')
-    #plt.title(f'Top {k} Most Frequent Tokens')
+    plt.xlabel('Frequency')
+    plt.ylabel('Tokens')
+    plt.title(f'Top {k} Most Frequent Tokens')
     plt.tight_layout()
     plt.savefig("token_counts.png")
     plt.clf()
@@ -285,12 +285,13 @@ def plot_word_entity_frequencies(corpus, k=25):
     reduced_entity_counts = reduce_to_top_k(entity_counts, k)
     # make a bar chart for them
     plt.barh([x[0] for x in reduced_entity_counts], [x[1] for x in reduced_entity_counts])
-    #plt.xlabel('Frequency')
-    #plt.ylabel('Entities')
-    #plt.title(f'Top {k} Most Frequent Entities')
+    plt.xlabel('Frequency')
+    plt.ylabel('Entities')
+    plt.title(f'Top {k} Most Frequent Entities')
     plt.tight_layout()
     plt.savefig("entity_counts.png")
     plt.clf()   
+
 
 def plot_metadata_frequencies(corpus, key):
     """Makes bar charts for the frequencies of values of a metadata key in a corpus.
@@ -301,22 +302,26 @@ def plot_metadata_frequencies(corpus, key):
     :type key: str
     """
     # get the metadata key table (instead of None)
-
+    metadata_counts = get_metadata_counts(corpus, key)
     # make a bar chart for them
     plt.barh([x[0] for x in metadata_counts], [x[1] for x in metadata_counts])
+    plt.xlabel('Frequency')
+    plt.ylabel(f'{key}_Counts')
+    plt.title(f"Top Most Frequent {key}_Counts")
     plt.tight_layout()
     plt.savefig(key + "_counts.png")
     plt.clf()  
 
 def plot_word_cloud(corpus):
     # get the token frequency table (instead of None)
-    token_counts = None
+    token_counts = get_token_counts(corpus, tags_to_exclude=['leaveMainTags'])
     # make the word cloud
     wc = wordcloud.WordCloud(width=800, height=400, max_words=200).generate_from_frequencies(dict(token_counts))
     # plot the word cloud
     plt.figure(figsize=(10, 10))
     plt.imshow(wc, interpolation='bilinear')
     plt.axis('off')
+    plt.title('Top Word WordCloud')
     plt.savefig('token_wordcloud.png')
     plt.clf()
 
@@ -327,25 +332,39 @@ def main():
       Then, we let the user choose whether they want corpus statistics, plots of corpus wordcounts, or a wordcloud for the corpus.
     """
     # ask the user to input a zip file, jsonl file or pattern
-
+    pattern = input('Input a zip file, jsonl file, or pattern: ')
     print(f'Loading %s, this may take awhile!' % pattern)
     # build the corpus from the pattern (instead of None)
-    corpus = None
+    corpus = build_corpus(pattern)
+    print(corpus)
     # keep going til the user quits with Ctrl-C
     while True:
             # set the goal to something that doesn't exist
         goal = ''
         # until the goal is 'statistics', 'wordcount' or 'wordcloud'
-
-            # ask the user for a value for 'goal' from 'statistics', 'wordcount' or 'wordcloud'
-
+        while goal not in ('statistics', 'wordcount', 'wordcloud', 'metadatafreq'):
+            # ask the user for a value for 'goal' from 'statistics', 'wordcount', 'metadatafreq' or 'wordcloud'
+            goal = input("set your goal['statistics', 'wordcount', 'wordcloud', 'metadatafreq']").lower()
+            print(f'You want to get: {goal}')
             # if the goal is 'statistics'
+            if goal == 'statistics':
                 # get basic corpus statistics
+                get_basic_statistics(corpus)
             # else if the goal is 'wordcount'
+            elif goal == 'wordcount':
                 # plot word and entity counts
+                plot_word_entity_frequencies(corpus)
+            ##else if the goal is 'metadataFreq'
+            elif goal == 'metadatafreq':
+                #ask for meta_data_key
+                key = input("Which metadata frequency do you seek?['publicationYear', 'pageCount']:")
+                #plot metadatafreq
+                plot_metadata_frequencies(corpus, key)
+            ##
             # else if the goal is 'wordcloud'
+            elif goal == 'wordcloud':
                 # make a wordcloud
-
+                plot_word_cloud(corpus)
 
 # this says, if executing this on the command line like python spacy-on-corpus.py, run main()    
 if __name__ == "__main__":
