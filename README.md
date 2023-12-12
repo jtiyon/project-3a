@@ -9,7 +9,8 @@ Joshua Iyonsi
 ## Extension(s) - Describe your extension(s) here
 
 ## Resources - Who or what did you use to finish this project deliverable?
-
+ChatGPT
+Michael Ofori Tenkorang Jr 
 
 -----------------------------------------------------------------------------------------------------------------------------------------------
 *Please do not edit below this line!*

@@ -172,15 +172,12 @@ def build_corpus(pattern, corpus={}, nlp=spacy.load("en_core_web_sm")):
     :rtype: dict
      """
     try:
-        print(f'debug test: {pattern}')
         ## Set the max_length attribute for the spaCy engine
         nlp.max_length = 1500000
         # for each file_name matching pattern
         for file_name in glob.glob(pattern):
-            print(f"Processing file: {file_name}")
             # if file_name ends with '.zip', '.tar' or '.tgz'
             if file_name.endswith(('.zip', '.tar', '.tgz')):
-                print(f'test{file_name}')
                 # then call load_compressed
                 load_compressed(file_name, corpus, nlp)
             # if file_name ends with '.jsonl'
@@ -337,7 +334,6 @@ def main():
     print(f'Loading %s, this may take awhile!' % pattern)
     # build the corpus from the pattern (instead of None)
     corpus = build_corpus(pattern)
-    print(corpus)
     # keep going til the user quits with Ctrl-C
     while True:
             # set the goal to something that doesn't exist
